@@ -23,7 +23,12 @@ class sijiake(object):
         headers = {
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36'
         }
-        dt = json.loads(requests.get(url, headers=headers).content)
+        cookies = '_zap=242cfd18-38a0-4797-bb6a-5182f4e77b33; d_c0="AEDoQbB5aQ6PTsONx3RCit7KIltICFPXFTY=|1540376499"; _xsrf=x2AazYI6mTtymh3mMjAilAWlz472dIwB; __gads=ID=ce46cfc8a9772a2a:T=1543237561:S=ALNI_MYZ7iWziEMk4dVWpl1fY-Qg0qqYRA; capsion_ticket="2|1:0|10:1557710315|14:capsion_ticket|44:Y2JlYmZhZWZmNzI3NDBjMWIyNTk3YmY3ZjA5ZDE1MTg=|190684ce84dd9d9f7d22a535dab905fc8e39c438875129a17683c0367c66d93d"; z_c0="2|1:0|10:1557710317|4:z_c0|92:Mi4xTGgxYUFBQUFBQUFBUU9oQnNIbHBEaVlBQUFCZ0FsVk43UlBHWFFCLW9zZXdyU1NRZV9zeWItWU90RmpnU29OWThB|8cb34c292edefd3e9640658a34174433e1b69b12725673c77e0d4fb11b1e4de0"; q_c1=1a884fa247d349b1a8ec5754371a9bcd|1557710392000|1540376500000; __utmv=51854390.100-1|2=registration_date=20140513=1^3=entry_date=20140513=1; tst=h; __utma=51854390.709010318.1558253844.1559572267.1559780681.3; __utmz=51854390.1559780681.3.3.utmcsr=zhihu.com|utmccn=(referral)|utmcmd=referral|utmcct=/hot; tgw_l7_route=73af20938a97f63d9b695ad561c4c10c'
+        jar = requests.cookies.RequestsCookieJar()
+        for cookie in cookies.split(';'):
+            key, value = cookie.split('=', 1)
+            jar.set(key, value)
+        dt = json.loads(requests.get(url, headers=headers, cookies=jar).content)
         return dt
 
     def getplaylist(self):
@@ -31,7 +36,12 @@ class sijiake(object):
         headers = {
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36'
         }
-        pl = json.loads(requests.get(url, headers=headers).content)
+        cookies = '_zap=242cfd18-38a0-4797-bb6a-5182f4e77b33; d_c0="AEDoQbB5aQ6PTsONx3RCit7KIltICFPXFTY=|1540376499"; _xsrf=x2AazYI6mTtymh3mMjAilAWlz472dIwB; __gads=ID=ce46cfc8a9772a2a:T=1543237561:S=ALNI_MYZ7iWziEMk4dVWpl1fY-Qg0qqYRA; capsion_ticket="2|1:0|10:1557710315|14:capsion_ticket|44:Y2JlYmZhZWZmNzI3NDBjMWIyNTk3YmY3ZjA5ZDE1MTg=|190684ce84dd9d9f7d22a535dab905fc8e39c438875129a17683c0367c66d93d"; z_c0="2|1:0|10:1557710317|4:z_c0|92:Mi4xTGgxYUFBQUFBQUFBUU9oQnNIbHBEaVlBQUFCZ0FsVk43UlBHWFFCLW9zZXdyU1NRZV9zeWItWU90RmpnU29OWThB|8cb34c292edefd3e9640658a34174433e1b69b12725673c77e0d4fb11b1e4de0"; q_c1=1a884fa247d349b1a8ec5754371a9bcd|1557710392000|1540376500000; __utmv=51854390.100-1|2=registration_date=20140513=1^3=entry_date=20140513=1; tst=h; __utma=51854390.709010318.1558253844.1559572267.1559780681.3; __utmz=51854390.1559780681.3.3.utmcsr=zhihu.com|utmccn=(referral)|utmcmd=referral|utmcct=/hot; tgw_l7_route=73af20938a97f63d9b695ad561c4c10c'
+        jar = requests.cookies.RequestsCookieJar()
+        for cookie in cookies.split(';'):
+            key, value = cookie.split('=', 1)
+            jar.set(key, value)
+        pl = json.loads(requests.get(url, headers=headers, cookies=jar).content)
         return pl
 
     def videodl(self):
@@ -43,7 +53,7 @@ class sijiake(object):
         for chapter in self.playlist["album_video_chapters"]:
             chapname = "第%d章 %s" % (chapter["chapter_index"], chapter["title"])
             for segment in chapter["videos"]:
-                segmentname = ("%02d %s.mp4" % (segment["video_index"], segment["title"])).replace("|", "")
+                segmentname = ("%02d %s.mp4" % (segment["video_index"], segment["title"])).replace("|", "").replace(":", "：").replace("?", "？")
                 segmenturl = segment["playlist_info"][resl]["url"]
                 print("-" * 50)
                 print("开始下载%s" % segmentname)
@@ -62,13 +72,13 @@ class sijiake(object):
                 authors += "主讲人头衔：" + author["user"]["badge"][0]["description"] + "\n"
             authors += "主讲人简介：" + author["career"] +"\n"
 
-        briefdes = "[b][size=4]课程简介[/size][/b]"
+        briefdes = "[b][size=4]课程简介[/size][/b]\n"
         content = (self.detail["description"]["content"]).replace("<p>", "").replace("</p>", "")
         content = content.replace("<strong>", "[b]").replace("</strong>", "[/b]")
         content = content.replace("<code>", "").replace("</code>", "")
         content = content.replace("<pre>", "").replace("</pre", "")
         content = content.replace('<img src="', "[img]").replace('" alt="', "[/img]")
-        content = content.replace('">', "")
+        content = content.replace('">', "").replace("<br/>", "") + "\n"
         briefdes += content
 
         print(authors)
@@ -78,7 +88,6 @@ class sijiake(object):
 class asijiake(sijiake):
     def parse(self):
         self.detail = self.getdetail()
-        """
         self.playlist = self.getplaylist()
         self.projectname = self.detail["title"]
         if os.path.exists(self.projectname):
@@ -86,12 +95,11 @@ class asijiake(sijiake):
         else:
             os.mkdir(self.projectname)
         self.audiodl()
-        """
         self.getdescription()
 
     def audiodl(self):
         for track in self.playlist["tracks"]:
-            segmentname = "%02d %s.mp3" % (track["index"], track["title"])
+            segmentname = ("%02d %s.mp3" % (track["index"], track["title"])).replace(":", "：").replace("|", "").replace("?", "？")
             segmenturl = track["audio"]["url"]
             print("-" * 50)
             print("开始下载%s" % segmentname)
@@ -133,15 +141,19 @@ class alive(object):
         return lv
 
     def getoutline(self):
-        url = "https://api.zhihu.com/lives/" + self.id
         headers = {
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36'
         }
-        ol = json.loads(requests.get(url, headers=headers).content)
+        cookies = '_zap=242cfd18-38a0-4797-bb6a-5182f4e77b33; d_c0="AEDoQbB5aQ6PTsONx3RCit7KIltICFPXFTY=|1540376499"; _xsrf=x2AazYI6mTtymh3mMjAilAWlz472dIwB; __gads=ID=ce46cfc8a9772a2a:T=1543237561:S=ALNI_MYZ7iWziEMk4dVWpl1fY-Qg0qqYRA; capsion_ticket="2|1:0|10:1557710315|14:capsion_ticket|44:Y2JlYmZhZWZmNzI3NDBjMWIyNTk3YmY3ZjA5ZDE1MTg=|190684ce84dd9d9f7d22a535dab905fc8e39c438875129a17683c0367c66d93d"; z_c0="2|1:0|10:1557710317|4:z_c0|92:Mi4xTGgxYUFBQUFBQUFBUU9oQnNIbHBEaVlBQUFCZ0FsVk43UlBHWFFCLW9zZXdyU1NRZV9zeWItWU90RmpnU29OWThB|8cb34c292edefd3e9640658a34174433e1b69b12725673c77e0d4fb11b1e4de0"; q_c1=1a884fa247d349b1a8ec5754371a9bcd|1557710392000|1540376500000; __utmv=51854390.100-1|2=registration_date=20140513=1^3=entry_date=20140513=1; tst=h; __utma=51854390.709010318.1558253844.1559572267.1559780681.3; __utmz=51854390.1559780681.3.3.utmcsr=zhihu.com|utmccn=(referral)|utmcmd=referral|utmcct=/hot; tgw_l7_route=73af20938a97f63d9b695ad561c4c10c'
+        jar = requests.cookies.RequestsCookieJar()
+        for cookie in cookies.split(';'):
+            key, value = cookie.split('=', 1)
+            jar.set(key, value)
+        ol = json.loads(requests.get(url, headers=headers, cookies=jar).content)
         return ol
 
     def alivedl(self):
-        segmentname = "%s.mp3" % self.projectname
+        segmentname = ("%s.mp3" % self.projectname).replace(":", "：").replace("|", "").replace("?", "？")
         segmenturl = self.content["audio"]["full"][0]["url"]
         print("-" * 50)
         print("开始下载%s" % segmentname)
@@ -159,14 +171,14 @@ class alive(object):
         authors += "[b][size=4]主讲人：" + self.content["speaker"]["member"]["name"] + "[/size][/b]\n"
         authors += "主讲人简介：" + self.content["speaker"]["description"] + "\n"
 
-        briefdes = "[b][size=4]Live讲座简介[/size][/b]"
+        briefdes = "[b][size=4]Live讲座简介[/size][/b]\n"
         content = self.outline["description_html"] + "\n" + "[b][size=4]内容大纲[/size][/b]\n" + self.outline["outline"]
         content = content.replace("<p>", "").replace("</p>", "")
         content = content.replace("<strong>", "[b]").replace("</strong>", "[/b]")
         content = content.replace("<code>", "").replace("</code>", "")
         content = content.replace("<pre>", "").replace("</pre", "")
         content = content.replace('<img src="', "[img]").replace('" alt="', "[/img]")
-        content = content.replace('">', "")
+        content = content.replace('">', "").replace("<br/>", "") + "\n"
         briefdes += content
 
         chapters ="序号\t章节标题\t开始时间\t结束时间\t历时"
@@ -223,7 +235,7 @@ class live(object):
         return ol
 
     def livedl(self):
-        segmentname = "%s.mp4" % self.projectname
+        segmentname = ("%s.mp4" % self.projectname).replace(":", "：").replace("|", "").replace("?", "？")
         segmenturl = self.outline["video"]["formal_video_tape"]["hls_video_url"]
         print("-" * 50)
         print("开始下载%s" % segmentname)
@@ -246,14 +258,14 @@ class live(object):
         authors += "[b][size=4]主讲人：" + self.outline["speaker"]["member"]["name"] + "[/size][/b]\n"
         authors += "主讲人简介：" + self.outline["speaker"]["description"] + "\n"
 
-        briefdes = "[b][size=4]Live讲座简介[/size][/b]"
+        briefdes = "[b][size=4]Live讲座简介[/size][/b]\n"
         content = self.outline["description_html"] + "\n" + "[b][size=4]内容大纲[/size][/b]\n" + self.outline["outline"]
         content = content.replace("<p>", "").replace("</p>", "")
         content = content.replace("<strong>", "[b]").replace("</strong>", "[/b]")
         content = content.replace("<code>", "").replace("</code>", "")
         content = content.replace("<pre>", "").replace("</pre", "")
         content = content.replace('<img src="', "[img]").replace('" alt="', "[/img]")
-        content = content.replace('">', "")
+        content = content.replace('">', "").replace("<br/>", "") +"\n"
         briefdes += content
 
         print(authors)
