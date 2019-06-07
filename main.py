@@ -3,14 +3,38 @@ import json
 import os
 
 
-class sijiake(object):
+class Base(object):
+    @staticmethod
+    def standard(name):
+        '''标准化文件及文件夹的命名'''
+        nm = name.replace("|", "：").replace(":", "：").replace("?", "？").replace("/", "").replace("\\", "").replace("*", "")
+        nm = nm.replace("<", "《").replace(">", "》").replace('"', "“")
+        return nm
+
+    @staticmethod
+    def html2bbcode(html):
+        '''将html转化为bbcode'''
+        content = html.replace("<p>", "").replace("</p>", "")
+        content = content.replace("<strong>", "[b]").replace("</strong>", "[/b]")
+        content = content.replace("<code>", "").replace("</code>", "")
+        content = content.replace("<pre>", "").replace("</pre", "")
+        content = content.replace('<img src="', "[img]").replace('" alt="', "[/img]")
+        content = content.replace('">', "").replace("<br/>", "")
+        content = content.replace("<ul>", "").replace("</ul>", "")
+        content = content.replace("<ol>", "").replace("</ol>", "")
+        content = content.replace("<li>", "").replace("</li>", "")
+        content += "\n"
+        return content
+
+
+class Sijiake(Base):
     def __init__(self, sjkid):
         self.id = sjkid
 
     def parse(self):
         self.detail = self.getdetail()
         self.playlist = self.getplaylist()
-        self.projectname = self.detail["title"]
+        self.projectname = self.standard(self.detail["title"])
         if os.path.exists(self.projectname):
             pass
         else:
@@ -51,9 +75,9 @@ class sijiake(object):
         if des_resl != "":
             resl = des_resl
         for chapter in self.playlist["album_video_chapters"]:
-            chapname = "第%d章 %s" % (chapter["chapter_index"], chapter["title"])
+            chapname = self.standard("第%d章 %s" % (chapter["chapter_index"], chapter["title"]))
             for segment in chapter["videos"]:
-                segmentname = ("%02d %s.mp4" % (segment["video_index"], segment["title"])).replace("|", "").replace(":", "：").replace("?", "？")
+                segmentname = self.standard("%02d %s.mp4" % (segment["video_index"], segment["title"]))
                 segmenturl = segment["playlist_info"][resl]["url"]
                 print("-" * 50)
                 print("开始下载%s" % segmentname)
@@ -73,23 +97,18 @@ class sijiake(object):
             authors += "主讲人简介：" + author["career"] +"\n"
 
         briefdes = "[b][size=4]课程简介[/size][/b]\n"
-        content = (self.detail["description"]["content"]).replace("<p>", "").replace("</p>", "")
-        content = content.replace("<strong>", "[b]").replace("</strong>", "[/b]")
-        content = content.replace("<code>", "").replace("</code>", "")
-        content = content.replace("<pre>", "").replace("</pre", "")
-        content = content.replace('<img src="', "[img]").replace('" alt="', "[/img]")
-        content = content.replace('">', "").replace("<br/>", "") + "\n"
+        content = self.html2bbcode(self.detail["description"]["content"])
         briefdes += content
 
         print(authors)
         print(briefdes)
 
 
-class asijiake(sijiake):
+class ASijiake(Sijiake):
     def parse(self):
         self.detail = self.getdetail()
         self.playlist = self.getplaylist()
-        self.projectname = self.detail["title"]
+        self.projectname = self.standard(self.detail["title"])
         if os.path.exists(self.projectname):
             pass
         else:
@@ -99,7 +118,7 @@ class asijiake(sijiake):
 
     def audiodl(self):
         for track in self.playlist["tracks"]:
-            segmentname = ("%02d %s.mp3" % (track["index"], track["title"])).replace(":", "：").replace("|", "").replace("?", "？")
+            segmentname = self.standard("%02d %s.mp3" % (track["index"], track["title"]))
             segmenturl = track["audio"]["url"]
             print("-" * 50)
             print("开始下载%s" % segmentname)
@@ -112,14 +131,14 @@ class asijiake(sijiake):
         print("下载完成。")
 
 
-class alive(object):
+class ALive(Base):
     def __init__(self, liveid):
         self.id = liveid
 
     def parse(self):
         self.content = self.getlive()
         self.outline = self.getoutline()
-        self.projectname = self.content["subject"]
+        self.projectname = self.standard(self.content["subject"])
         if os.path.exists(self.projectname):
             pass
         else:
@@ -153,7 +172,7 @@ class alive(object):
         return ol
 
     def alivedl(self):
-        segmentname = ("%s.mp3" % self.projectname).replace(":", "：").replace("|", "").replace("?", "？")
+        segmentname = self.standard("%s.mp3" % self.projectname)
         segmenturl = self.content["audio"]["full"][0]["url"]
         print("-" * 50)
         print("开始下载%s" % segmentname)
@@ -173,12 +192,7 @@ class alive(object):
 
         briefdes = "[b][size=4]Live讲座简介[/size][/b]\n"
         content = self.outline["description_html"] + "\n" + "[b][size=4]内容大纲[/size][/b]\n" + self.outline["outline"]
-        content = content.replace("<p>", "").replace("</p>", "")
-        content = content.replace("<strong>", "[b]").replace("</strong>", "[/b]")
-        content = content.replace("<code>", "").replace("</code>", "")
-        content = content.replace("<pre>", "").replace("</pre", "")
-        content = content.replace('<img src="', "[img]").replace('" alt="', "[/img]")
-        content = content.replace('">', "").replace("<br/>", "") + "\n"
+        content = self.html2bbcode(content)
         briefdes += content
 
         chapters ="序号\t章节标题\t开始时间\t结束时间\t历时"
@@ -207,13 +221,13 @@ class alive(object):
         return ("%d:%02d:%02d" % (h, m, s))
 
 
-class live(object):
+class Live(Base):
     def __init__(self, liveid):
         self.id = liveid
 
     def parse(self):
         self.outline = self.getoutline()
-        self.projectname = self.outline["subject"]
+        self.projectname = self.standard(self.outline["subject"])
         if os.path.exists(self.projectname):
             pass
         else:
@@ -235,7 +249,7 @@ class live(object):
         return ol
 
     def livedl(self):
-        segmentname = ("%s.mp4" % self.projectname).replace(":", "：").replace("|", "").replace("?", "？")
+        segmentname = self.standard("%s.mp4" % self.projectname)
         segmenturl = self.outline["video"]["formal_video_tape"]["hls_video_url"]
         print("-" * 50)
         print("开始下载%s" % segmentname)
@@ -260,12 +274,7 @@ class live(object):
 
         briefdes = "[b][size=4]Live讲座简介[/size][/b]\n"
         content = self.outline["description_html"] + "\n" + "[b][size=4]内容大纲[/size][/b]\n" + self.outline["outline"]
-        content = content.replace("<p>", "").replace("</p>", "")
-        content = content.replace("<strong>", "[b]").replace("</strong>", "[/b]")
-        content = content.replace("<code>", "").replace("</code>", "")
-        content = content.replace("<pre>", "").replace("</pre", "")
-        content = content.replace('<img src="', "[img]").replace('" alt="', "[/img]")
-        content = content.replace('">', "").replace("<br/>", "") +"\n"
+        content = self.html2bbcode(content)
         briefdes += content
 
         print(authors)
@@ -276,19 +285,19 @@ if __name__ == "__main__":
     zhihu = input("请输入需要下载的知乎资源类型:\n1.视频私家课\n2.音频私家课\n3.Live（视频）\n4.Live（音频）\n5.电子书\n")
     if zhihu == "1":
         sjkid = input("请输入要进行下载的知乎音频私家课id:")
-        task = sijiake(sjkid)
+        task = Sijiake(sjkid)
         task.parse()
     if zhihu == "2":
         sjkid = input("请输入要进行下载的知乎音频私家课id:")
-        task = asijiake(sjkid)
+        task = ASijiake(sjkid)
         task.parse()
     if zhihu == "3":
         liveid = input("请输入要进行下载的知乎视频Liveid:")
-        task = live(liveid)
+        task = Live(liveid)
         task.parse()
     if zhihu == "4":
         liveid = input("请输入要进行下载的知乎音频Liveid:")
-        task = alive(liveid)
+        task = ALive(liveid)
         task.parse()
     if zhihu == "5":
         #知乎电子书有drm，暂未找到解密方法
