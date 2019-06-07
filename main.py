@@ -1,9 +1,16 @@
-import requests
+﻿import requests
 import json
 import os
 
+"""
+下载知乎盐选会员资源，支持私家课、Live下载，即将支持读书下载
+"""
 
 class Base(object):
+    def setcookie(self):
+        '''设置cookie'''
+        self.cookie = '_zap=242cfd18-38a0-4797-bb6a-5182f4e77b33; d_c0="AEDoQbB5aQ6PTsONx3RCit7KIltICFPXFTY=|1540376499"; _xsrf=x2AazYI6mTtymh3mMjAilAWlz472dIwB; __gads=ID=ce46cfc8a9772a2a:T=1543237561:S=ALNI_MYZ7iWziEMk4dVWpl1fY-Qg0qqYRA; capsion_ticket="2|1:0|10:1557710315|14:capsion_ticket|44:Y2JlYmZhZWZmNzI3NDBjMWIyNTk3YmY3ZjA5ZDE1MTg=|190684ce84dd9d9f7d22a535dab905fc8e39c438875129a17683c0367c66d93d"; z_c0="2|1:0|10:1557710317|4:z_c0|92:Mi4xTGgxYUFBQUFBQUFBUU9oQnNIbHBEaVlBQUFCZ0FsVk43UlBHWFFCLW9zZXdyU1NRZV9zeWItWU90RmpnU29OWThB|8cb34c292edefd3e9640658a34174433e1b69b12725673c77e0d4fb11b1e4de0"; q_c1=1a884fa247d349b1a8ec5754371a9bcd|1557710392000|1540376500000; __utmv=51854390.100-1|2=registration_date=20140513=1^3=entry_date=20140513=1; tst=h; __utma=51854390.709010318.1558253844.1559572267.1559780681.3; __utmz=51854390.1559780681.3.3.utmcsr=zhihu.com|utmccn=(referral)|utmcmd=referral|utmcct=/hot; tgw_l7_route=73af20938a97f63d9b695ad561c4c10c'
+
     @staticmethod
     def standard(name):
         '''标准化文件及文件夹的命名'''
@@ -14,7 +21,7 @@ class Base(object):
     @staticmethod
     def html2bbcode(html):
         '''将html转化为bbcode'''
-        content = html.replace("<p>", "").replace("</p>", "")
+        content = html.replace("<p>", "").replace("</p>", "").replace("<p/>", "")
         content = content.replace("<strong>", "[b]").replace("</strong>", "[/b]")
         content = content.replace("<code>", "").replace("</code>", "")
         content = content.replace("<pre>", "").replace("</pre", "")
@@ -23,6 +30,8 @@ class Base(object):
         content = content.replace("<ul>", "").replace("</ul>", "")
         content = content.replace("<ol>", "").replace("</ol>", "")
         content = content.replace("<li>", "").replace("</li>", "")
+        content = content.replace("<figure>", "").replace("</figure>", "")
+        content = content.replace('" class="', '[/img]')
         content += "\n"
         return content
 
@@ -32,6 +41,7 @@ class Sijiake(Base):
         self.id = sjkid
 
     def parse(self):
+        self.setcookie()
         self.detail = self.getdetail()
         self.playlist = self.getplaylist()
         self.projectname = self.standard(self.detail["title"])
@@ -47,7 +57,7 @@ class Sijiake(Base):
         headers = {
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36'
         }
-        cookies = '_zap=242cfd18-38a0-4797-bb6a-5182f4e77b33; d_c0="AEDoQbB5aQ6PTsONx3RCit7KIltICFPXFTY=|1540376499"; _xsrf=x2AazYI6mTtymh3mMjAilAWlz472dIwB; __gads=ID=ce46cfc8a9772a2a:T=1543237561:S=ALNI_MYZ7iWziEMk4dVWpl1fY-Qg0qqYRA; capsion_ticket="2|1:0|10:1557710315|14:capsion_ticket|44:Y2JlYmZhZWZmNzI3NDBjMWIyNTk3YmY3ZjA5ZDE1MTg=|190684ce84dd9d9f7d22a535dab905fc8e39c438875129a17683c0367c66d93d"; z_c0="2|1:0|10:1557710317|4:z_c0|92:Mi4xTGgxYUFBQUFBQUFBUU9oQnNIbHBEaVlBQUFCZ0FsVk43UlBHWFFCLW9zZXdyU1NRZV9zeWItWU90RmpnU29OWThB|8cb34c292edefd3e9640658a34174433e1b69b12725673c77e0d4fb11b1e4de0"; q_c1=1a884fa247d349b1a8ec5754371a9bcd|1557710392000|1540376500000; __utmv=51854390.100-1|2=registration_date=20140513=1^3=entry_date=20140513=1; tst=h; __utma=51854390.709010318.1558253844.1559572267.1559780681.3; __utmz=51854390.1559780681.3.3.utmcsr=zhihu.com|utmccn=(referral)|utmcmd=referral|utmcct=/hot; tgw_l7_route=73af20938a97f63d9b695ad561c4c10c'
+        cookies = self.cookie
         jar = requests.cookies.RequestsCookieJar()
         for cookie in cookies.split(';'):
             key, value = cookie.split('=', 1)
@@ -60,7 +70,7 @@ class Sijiake(Base):
         headers = {
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36'
         }
-        cookies = '_zap=242cfd18-38a0-4797-bb6a-5182f4e77b33; d_c0="AEDoQbB5aQ6PTsONx3RCit7KIltICFPXFTY=|1540376499"; _xsrf=x2AazYI6mTtymh3mMjAilAWlz472dIwB; __gads=ID=ce46cfc8a9772a2a:T=1543237561:S=ALNI_MYZ7iWziEMk4dVWpl1fY-Qg0qqYRA; capsion_ticket="2|1:0|10:1557710315|14:capsion_ticket|44:Y2JlYmZhZWZmNzI3NDBjMWIyNTk3YmY3ZjA5ZDE1MTg=|190684ce84dd9d9f7d22a535dab905fc8e39c438875129a17683c0367c66d93d"; z_c0="2|1:0|10:1557710317|4:z_c0|92:Mi4xTGgxYUFBQUFBQUFBUU9oQnNIbHBEaVlBQUFCZ0FsVk43UlBHWFFCLW9zZXdyU1NRZV9zeWItWU90RmpnU29OWThB|8cb34c292edefd3e9640658a34174433e1b69b12725673c77e0d4fb11b1e4de0"; q_c1=1a884fa247d349b1a8ec5754371a9bcd|1557710392000|1540376500000; __utmv=51854390.100-1|2=registration_date=20140513=1^3=entry_date=20140513=1; tst=h; __utma=51854390.709010318.1558253844.1559572267.1559780681.3; __utmz=51854390.1559780681.3.3.utmcsr=zhihu.com|utmccn=(referral)|utmcmd=referral|utmcct=/hot; tgw_l7_route=73af20938a97f63d9b695ad561c4c10c'
+        cookies = self.cookie
         jar = requests.cookies.RequestsCookieJar()
         for cookie in cookies.split(';'):
             key, value = cookie.split('=', 1)
@@ -71,6 +81,12 @@ class Sijiake(Base):
     def videodl(self):
         #设置清晰度
         resl = "hd"
+        resl_list = ["sd", "ld", "hd", "fhd"]
+        resl_li = []
+        for resl_ind in resl_list:
+            if resl_ind in self.playlist["album_video_chapters"][0]["videos"][0]["playlist_info"]:
+               resl_li.append(resl_ind)
+        print("可下载的清晰度有：" + str(resl_li))
         des_resl = input("请输入要下载的清晰度，默认hd")
         if des_resl != "":
             resl = des_resl
@@ -106,6 +122,7 @@ class Sijiake(Base):
 
 class ASijiake(Sijiake):
     def parse(self):
+        self.setcookie()
         self.detail = self.getdetail()
         self.playlist = self.getplaylist()
         self.projectname = self.standard(self.detail["title"])
@@ -136,6 +153,7 @@ class ALive(Base):
         self.id = liveid
 
     def parse(self):
+        self.setcookie()
         self.content = self.getlive()
         self.outline = self.getoutline()
         self.projectname = self.standard(self.content["subject"])
@@ -151,7 +169,7 @@ class ALive(Base):
         headers = {
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36'
         }
-        cookies = '_zap=242cfd18-38a0-4797-bb6a-5182f4e77b33; d_c0="AEDoQbB5aQ6PTsONx3RCit7KIltICFPXFTY=|1540376499"; _xsrf=x2AazYI6mTtymh3mMjAilAWlz472dIwB; __gads=ID=ce46cfc8a9772a2a:T=1543237561:S=ALNI_MYZ7iWziEMk4dVWpl1fY-Qg0qqYRA; capsion_ticket="2|1:0|10:1557710315|14:capsion_ticket|44:Y2JlYmZhZWZmNzI3NDBjMWIyNTk3YmY3ZjA5ZDE1MTg=|190684ce84dd9d9f7d22a535dab905fc8e39c438875129a17683c0367c66d93d"; z_c0="2|1:0|10:1557710317|4:z_c0|92:Mi4xTGgxYUFBQUFBQUFBUU9oQnNIbHBEaVlBQUFCZ0FsVk43UlBHWFFCLW9zZXdyU1NRZV9zeWItWU90RmpnU29OWThB|8cb34c292edefd3e9640658a34174433e1b69b12725673c77e0d4fb11b1e4de0"; q_c1=1a884fa247d349b1a8ec5754371a9bcd|1557710392000|1540376500000; __utmv=51854390.100-1|2=registration_date=20140513=1^3=entry_date=20140513=1; tst=h; __utma=51854390.709010318.1558253844.1559572267.1559780681.3; __utmz=51854390.1559780681.3.3.utmcsr=zhihu.com|utmccn=(referral)|utmcmd=referral|utmcct=/hot; tgw_l7_route=73af20938a97f63d9b695ad561c4c10c'
+        cookies = self.cookie
         jar = requests.cookies.RequestsCookieJar()
         for cookie in cookies.split(';'):
             key, value = cookie.split('=', 1)
@@ -160,10 +178,11 @@ class ALive(Base):
         return lv
 
     def getoutline(self):
+        url = "https://api.zhihu.com/lives/" + self.id
         headers = {
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36'
         }
-        cookies = '_zap=242cfd18-38a0-4797-bb6a-5182f4e77b33; d_c0="AEDoQbB5aQ6PTsONx3RCit7KIltICFPXFTY=|1540376499"; _xsrf=x2AazYI6mTtymh3mMjAilAWlz472dIwB; __gads=ID=ce46cfc8a9772a2a:T=1543237561:S=ALNI_MYZ7iWziEMk4dVWpl1fY-Qg0qqYRA; capsion_ticket="2|1:0|10:1557710315|14:capsion_ticket|44:Y2JlYmZhZWZmNzI3NDBjMWIyNTk3YmY3ZjA5ZDE1MTg=|190684ce84dd9d9f7d22a535dab905fc8e39c438875129a17683c0367c66d93d"; z_c0="2|1:0|10:1557710317|4:z_c0|92:Mi4xTGgxYUFBQUFBQUFBUU9oQnNIbHBEaVlBQUFCZ0FsVk43UlBHWFFCLW9zZXdyU1NRZV9zeWItWU90RmpnU29OWThB|8cb34c292edefd3e9640658a34174433e1b69b12725673c77e0d4fb11b1e4de0"; q_c1=1a884fa247d349b1a8ec5754371a9bcd|1557710392000|1540376500000; __utmv=51854390.100-1|2=registration_date=20140513=1^3=entry_date=20140513=1; tst=h; __utma=51854390.709010318.1558253844.1559572267.1559780681.3; __utmz=51854390.1559780681.3.3.utmcsr=zhihu.com|utmccn=(referral)|utmcmd=referral|utmcct=/hot; tgw_l7_route=73af20938a97f63d9b695ad561c4c10c'
+        cookies = self.cookie
         jar = requests.cookies.RequestsCookieJar()
         for cookie in cookies.split(';'):
             key, value = cookie.split('=', 1)
@@ -191,11 +210,11 @@ class ALive(Base):
         authors += "主讲人简介：" + self.content["speaker"]["description"] + "\n"
 
         briefdes = "[b][size=4]Live讲座简介[/size][/b]\n"
-        content = self.outline["description_html"] + "\n" + "[b][size=4]内容大纲[/size][/b]\n" + self.outline["outline"]
+        content = self.outline["description_html"] + "\n\n" + "[b][size=4]内容大纲[/size][/b]\n" + self.outline["outline"]
         content = self.html2bbcode(content)
         briefdes += content
 
-        chapters ="序号\t章节标题\t开始时间\t结束时间\t历时"
+        chapters ="[b][size=4]章节信息[/size][/b]\n序号\t章节标题\t开始时间\t结束时间\t历时\n"
         for chapter in self.content["chapters"]:
             #开始时间
             start_time = int(chapter["starts_at"]/1000)
@@ -206,7 +225,7 @@ class ALive(Base):
             dtime = self.seconds2time(dura_time)
             chapters += ("%02d\t%s\t%s\t%s\t%s" % (chapter["idx"], chapter["title"], stime, etime, dtime)) + "\n"
 
-        slides = ""
+        slides = "[b][size=4]幻灯片[/size][/b]\n"
         for slide in self.content["slides"]:
             slides += ("[img]" + slide["artwork"] + "[/img]\n").replace("_r", "")
 
@@ -226,6 +245,7 @@ class Live(Base):
         self.id = liveid
 
     def parse(self):
+        self.setcookie()
         self.outline = self.getoutline()
         self.projectname = self.standard(self.outline["subject"])
         if os.path.exists(self.projectname):
@@ -240,7 +260,7 @@ class Live(Base):
         headers = {
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36'
         }
-        cookies = '_zap=242cfd18-38a0-4797-bb6a-5182f4e77b33; d_c0="AEDoQbB5aQ6PTsONx3RCit7KIltICFPXFTY=|1540376499"; _xsrf=x2AazYI6mTtymh3mMjAilAWlz472dIwB; __gads=ID=ce46cfc8a9772a2a:T=1543237561:S=ALNI_MYZ7iWziEMk4dVWpl1fY-Qg0qqYRA; capsion_ticket="2|1:0|10:1557710315|14:capsion_ticket|44:Y2JlYmZhZWZmNzI3NDBjMWIyNTk3YmY3ZjA5ZDE1MTg=|190684ce84dd9d9f7d22a535dab905fc8e39c438875129a17683c0367c66d93d"; z_c0="2|1:0|10:1557710317|4:z_c0|92:Mi4xTGgxYUFBQUFBQUFBUU9oQnNIbHBEaVlBQUFCZ0FsVk43UlBHWFFCLW9zZXdyU1NRZV9zeWItWU90RmpnU29OWThB|8cb34c292edefd3e9640658a34174433e1b69b12725673c77e0d4fb11b1e4de0"; q_c1=1a884fa247d349b1a8ec5754371a9bcd|1557710392000|1540376500000; __utmv=51854390.100-1|2=registration_date=20140513=1^3=entry_date=20140513=1; tst=h; __utma=51854390.709010318.1558253844.1559572267.1559780681.3; __utmz=51854390.1559780681.3.3.utmcsr=zhihu.com|utmccn=(referral)|utmcmd=referral|utmcct=/hot; tgw_l7_route=73af20938a97f63d9b695ad561c4c10c'
+        cookies = self.cookie
         jar = requests.cookies.RequestsCookieJar()
         for cookie in cookies.split(';'):
             key, value = cookie.split('=', 1)
@@ -282,7 +302,7 @@ class Live(Base):
 
 
 if __name__ == "__main__":
-    zhihu = input("请输入需要下载的知乎资源类型:\n1.视频私家课\n2.音频私家课\n3.Live（视频）\n4.Live（音频）\n5.电子书\n")
+    zhihu = input("请输入需要下载的知乎资源类型:\n1.视频私家课\n2.音频私家课\n3.Live（视频）\n4.Live（音频）\n5.讲书\n6.电子书\n")
     if zhihu == "1":
         sjkid = input("请输入要进行下载的知乎音频私家课id:")
         task = Sijiake(sjkid)
@@ -300,5 +320,8 @@ if __name__ == "__main__":
         task = ALive(liveid)
         task.parse()
     if zhihu == "5":
-        #知乎电子书有drm，暂未找到解密方法
+        # TODO 知乎讲书下载
+        pass
+    if zhihu == "6":
+        # TODO 知乎电子书有drm，暂未找到解密方法
         pass
