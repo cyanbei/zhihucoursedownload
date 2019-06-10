@@ -1,6 +1,7 @@
 ﻿import requests
 import json
 import os
+import codecs
 
 """
 下载知乎盐选会员资源，支持私家课、Live下载，即将支持读书下载
@@ -50,7 +51,7 @@ class Sijiake(Base):
         else:
             os.mkdir(self.projectname)
         self.videodl()
-        self.getdescription()
+        print(self.getdescription())
 
     def getdetail(self):
         url = "https://api.zhihu.com/remix/albums/" + self.id + "/detail"
@@ -95,6 +96,9 @@ class Sijiake(Base):
             for segment in chapter["videos"]:
                 segmentname = self.standard("%02d %s.mp4" % (segment["video_index"], segment["title"]))
                 segmenturl = segment["playlist_info"][resl]["url"]
+                if os.path.exists("%s/%s/%s" % (self.projectname, chapname, segmentname)):
+                    print("%s 分片已存在！" % segmentname)
+                    continue
                 print("-" * 50)
                 print("开始下载%s" % segmentname)
                 print("aria2c.exe -d \"%s\" -o \"%s\" -s 16 -x 16 \"%s\"" % (self.projectname + "/" + chapname, segmentname, segmenturl))
@@ -115,9 +119,12 @@ class Sijiake(Base):
         briefdes = "[b][size=4]课程简介[/size][/b]\n"
         content = self.html2bbcode(self.detail["description"]["content"])
         briefdes += content
+        return (authors + "\n" + briefdes)
 
-        print(authors)
-        print(briefdes)
+    def writedesc(self):
+        content = self.getdescription()
+        with codecs.open(("%s.txt" % self.projectname), "a+", "utf-8") as f:
+            f.write(content)
 
 
 class ASijiake(Sijiake):
@@ -131,12 +138,15 @@ class ASijiake(Sijiake):
         else:
             os.mkdir(self.projectname)
         self.audiodl()
-        self.getdescription()
+        print(self.getdescription())
 
     def audiodl(self):
         for track in self.playlist["tracks"]:
             segmentname = self.standard("%02d %s.mp3" % (track["index"], track["title"]))
             segmenturl = track["audio"]["url"]
+            if os.path.exists("%s/%s" % (self.projectname, segmentname)):
+                print("%s 分片已存在！" % segmentname)
+                continue
             print("-" * 50)
             print("开始下载%s" % segmentname)
             print("aria2c.exe -d \"%s\" -o \"%s\" -s 16 -x 16 \"%s\"" % (
@@ -162,7 +172,7 @@ class ALive(Base):
         else:
             os.mkdir(self.projectname)
         self.alivedl()
-        self.getdescription()
+        print(self.getdescription())
 
     def getlive(self):
         url = "https://api.zhihu.com/nlives/lives/" + self.id + "/play_info"
@@ -229,15 +239,17 @@ class ALive(Base):
         for slide in self.content["slides"]:
             slides += ("[img]" + slide["artwork"] + "[/img]\n").replace("_r", "")
 
-        print(authors)
-        print(briefdes)
-        print(chapters)
-        print(slides)
+        return (authors + "\n" + briefdes + "\n" + chapters + "\n" + slides)
 
     def seconds2time(self, seconds):
         m, s = divmod(seconds, 60)
         h, m = divmod(m, 60)
         return ("%d:%02d:%02d" % (h, m, s))
+
+    def writedesc(self):
+        content = self.getdescription()
+        with codecs.open(("%s.txt" % self.projectname), "a+", "utf-8") as f:
+            f.write(content)
 
 
 class Live(Base):
@@ -297,31 +309,143 @@ class Live(Base):
         content = self.html2bbcode(content)
         briefdes += content
 
-        print(authors)
-        print(briefdes)
+        return (authors + "\n" + briefdes)
 
+    def writedesc(self):
+        content = self.getdescription()
+        with codecs.open(("%s.txt" % self.projectname), "a+", "utf-8") as f:
+            f.write(content)
 
-if __name__ == "__main__":
-    zhihu = input("请输入需要下载的知乎资源类型:\n1.视频私家课\n2.音频私家课\n3.Live（视频）\n4.Live（音频）\n5.讲书\n6.电子书\n")
+class billboard(Base):
+    def __init__(self, typ, cat, page, rows):
+        super().setcookie()
+        self.typ = typ
+        self.cat = cat
+        self.page = page
+        self.rows = rows
+
+    def show(self):
+        self.li = self.list()
+        print("-" * 25 + "读取列表中" + "-" * 25)
+        index = 0
+        while index < self.rows:
+            print("%02d\t%s\t%s\t%s\t%s" % (index, self.li["data"][index]["title"],self.li["data"][index]["media_type"],
+                                           self.li["data"][index]["chapter_text"], self.li["data"][index]["duration_text"]))
+            index += 1
+        self.handle()
+
+    def handle(self):
+        mode = input("请选择功能:\n1.批量下载本页内容\n2.查看下一页\n3.查看上一页\n")
+        if mode == "1":
+            mmission = input("请输入要下载的课程序号，用:分隔，如（0:49）\n")
+            mmissions, mmissione = mmission.split(":")
+            self.massmission(int(mmissions), int(mmissione))
+        elif mode == "2":
+            albums = billboard(self.typ, self.cat, self.page + 1, self.rows)
+            albums.show()
+        elif mode == "3":
+            if self.page == 1:
+                print("已经是第一页，无法查看前一页！")
+                self.handle()
+            else:
+                albums = billboard(self.typ, self.cat, self.page - 1, self.rows)
+                albums.show()
+
+    def list(self):
+        url = "https://api.zhihu.com/market/categories/all"
+        headers = {
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36'
+        }
+        params = {
+            'study_type': self.typ,
+            'level': 2,
+            'dataType': 'new',
+            'right_type': '',
+            'limit': self.rows,
+            'sort_type': self.cat,
+            'offset': (self.rows * (self.page - 1))
+        }
+        cookies = self.cookie
+        jar = requests.cookies.RequestsCookieJar()
+        for cookie in cookies.split(';'):
+            key, value = cookie.split('=', 1)
+            jar.set(key, value)
+        ls = json.loads(requests.get(url, headers=headers, params=params, cookies=jar).content)
+        return ls
+
+    def massmission(self, start ,end):
+        i = start
+        while i <= end:
+            if self.li["data"][i]["media_type"] == "audio" and self.typ == "album":
+                task = ASijiake(self.li["data"][i]["business_id"])
+                task.parse()
+                task.writedesc()
+            elif self.li["data"][i]["media_type"] == "video" and self.typ == "album":
+                task = Sijiake(self.li["data"][i]["business_id"])
+                task.parse()
+                task.writedesc()
+            if self.li["data"][i]["media_type"] == "audio" and self.typ == "Live":
+                task = ALive(self.li["data"][i]["business_id"])
+                task.parse()
+                task.writedesc()
+            elif self.li["data"][i]["media_type"] == "video" and self.typ == "Live":
+                task = Live(self.li["data"][i]["business_id"])
+                task.parse()
+                task.writedesc()
+            else:
+                print("第%02d个任务处理失败。" % i)
+            i += 1
+
+def entrance():
+    zhihu = input("请输入需要下载的知乎资源类型:\n1.知乎私家课\n2.知乎Live\n3.知乎讲书\n")
     if zhihu == "1":
-        sjkid = input("请输入要进行下载的知乎音频私家课id:")
-        task = Sijiake(sjkid)
-        task.parse()
-    if zhihu == "2":
-        sjkid = input("请输入要进行下载的知乎音频私家课id:")
-        task = ASijiake(sjkid)
-        task.parse()
-    if zhihu == "3":
-        liveid = input("请输入要进行下载的知乎视频Liveid:")
-        task = Live(liveid)
-        task.parse()
-    if zhihu == "4":
-        liveid = input("请输入要进行下载的知乎音频Liveid:")
-        task = ALive(liveid)
-        task.parse()
-    if zhihu == "5":
-        # TODO 知乎讲书下载
+        coursetype = "album"
+        dlmethod = input("请选择下载方式\n1.通过列表下载\n2.通过课程id下载\n")
+        if dlmethod == "1":
+            cate = input("请输入列表排序方式：\n1.按最新发布排序\n2.按最多人感兴趣排序\n")
+            if cate == "1":
+                albums = billboard(coursetype, "newest", 1 ,50)
+                albums.show()
+            elif cate == "2":
+                albums = billboard(coursetype, "interest", 1, 50)
+                albums.show()
+        if dlmethod == "2":
+            idtype = input("请输入需要下载的私家课id类型：\n1.视频私家课\n2.音频私家课\n")
+            if idtype == "1":
+                sjkid = input("请输入要进行下载的知乎视频私家课id:")
+                task = Sijiake(sjkid)
+                task.parse()
+            if idtype == "2":
+                sjkid = input("请输入要进行下载的知乎音频私家课id:")
+                task = ASijiake(sjkid)
+                task.parse()
+    elif zhihu == "2":
+        coursetype = "Live"
+        dlmethod = input("请选择下载方式\n1.通过列表下载\n2.通过课程id下载\n")
+        if dlmethod == "1":
+            cate = input("请输入列表排序方式：\n1.按最新发布排序\n2.按最多人感兴趣排序\n")
+            if cate == "1":
+                albums = billboard(coursetype, "newest", 1, 50)
+                albums.show()
+            elif cate == "2":
+                albums = billboard(coursetype, "interest", 1, 50)
+                albums.show()
+        if dlmethod == "2":
+            idtype = input("请输入需要下载的Live id类型：\n1.视频Live\n2.音频Liven")
+            if idtype == "1":
+                liveid = input("请输入要进行下载的知乎视频Live id:")
+                task = Live(liveid)
+                task.parse()
+            if idtype == "2":
+                liveid = input("请输入要进行下载的知乎音频Liveid:")
+                task = ALive(liveid)
+                task.parse()
+    elif zhihu == "3":
+         # TODO 知乎讲书下载
         pass
-    if zhihu == "6":
+    if zhihu == "4":
         # TODO 知乎电子书有drm，暂未找到解密方法
         pass
+
+if __name__ == "__main__":
+    entrance()

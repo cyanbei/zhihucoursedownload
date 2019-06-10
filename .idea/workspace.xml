@@ -13,10 +13,13 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/main.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="323">
-              <caret line="25" column="70" lean-forward="true" selection-start-line="25" selection-start-column="70" selection-end-line="25" selection-end-column="70" />
+            <state relative-caret-position="333">
+              <caret line="314" column="39" lean-forward="true" selection-start-line="314" selection-start-column="39" selection-end-line="314" selection-end-column="39" />
               <folding>
                 <element signature="e#0#15#0" expanded="true" />
+                <element signature="e#105#2300#0" />
+                <element signature="e#5836#6799#0" />
+                <element signature="e#13000#15482#0" />
               </folding>
             </state>
           </provider>
@@ -55,7 +58,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -67,6 +69,7 @@
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="RunDashboard">
@@ -125,7 +128,7 @@
   <component name="ToolWindowManager">
     <frame x="-7" y="-7" width="1550" height="838" extended-state="6" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.29423591" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.29825738" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -152,10 +155,13 @@
     <entry file="file://$PROJECT_DIR$/downloader/m3u8.py" />
     <entry file="file://$PROJECT_DIR$/main.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="323">
-          <caret line="25" column="70" lean-forward="true" selection-start-line="25" selection-start-column="70" selection-end-line="25" selection-end-column="70" />
+        <state relative-caret-position="333">
+          <caret line="314" column="39" lean-forward="true" selection-start-line="314" selection-start-column="39" selection-end-line="314" selection-end-column="39" />
           <folding>
             <element signature="e#0#15#0" expanded="true" />
+            <element signature="e#105#2300#0" />
+            <element signature="e#5836#6799#0" />
+            <element signature="e#13000#15482#0" />
           </folding>
         </state>
       </provider>
