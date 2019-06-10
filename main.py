@@ -27,12 +27,14 @@ class Base(object):
         content = content.replace("<code>", "").replace("</code>", "")
         content = content.replace("<pre>", "").replace("</pre", "")
         content = content.replace('<img src="', "[img]").replace('" alt="', "[/img]")
-        content = content.replace('">', "").replace("<br/>", "")
+        content = content.replace('">', "").replace("<br/>", "").replace("<br>", "")
         content = content.replace("<ul>", "").replace("</ul>", "")
         content = content.replace("<ol>", "").replace("</ol>", "")
         content = content.replace("<li>", "").replace("</li>", "")
         content = content.replace("<figure>", "").replace("</figure>", "")
         content = content.replace('" class="', '[/img]')
+        content = content.replace("<span>", "").replace("</span>", "")
+        content = content.replace('<span class=" fw-cl', "")
         content += "\n"
         return content
 
@@ -265,7 +267,7 @@ class Live(Base):
         else:
             os.mkdir(self.projectname)
         self.livedl()
-        self.getdescription()
+        print(self.getdescription())
 
     def getoutline(self):
         url = "https://api.zhihu.com/lives/" + self.id
@@ -315,6 +317,144 @@ class Live(Base):
         content = self.getdescription()
         with codecs.open(("%s.txt" % self.projectname), "a+", "utf-8") as f:
             f.write(content)
+
+
+class Jiangshu(Base):
+    def __init__(self, storyid):
+        self.id = storyid
+
+    def parse(self):
+        self.setcookie()
+        self.detail = self.getdetail()
+        self.story = self.getstory()
+        self.projectname = self.story["bio"]
+        if os.path.exists(self.projectname):
+            pass
+        else:
+            os.mkdir(self.projectname)
+        self.storydl()
+        print(self.getdescription())
+
+    def getstory(self):
+        url = "https://api.zhihu.com/remix/instabooks/" + self.id + "/simple"
+        headers = {
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36'
+        }
+        cookies = self.cookie
+        jar = requests.cookies.RequestsCookieJar()
+        for cookie in cookies.split(';'):
+            key, value = cookie.split('=', 1)
+            jar.set(key, value)
+        st = json.loads(requests.get(url, headers=headers, cookies = jar).content)
+        return st
+
+    def getdetail(self):
+        url = "https://api.zhihu.com/remix/instabooks/" + self.id
+        headers = {
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36'
+        }
+        cookies = self.cookie
+        jar = requests.cookies.RequestsCookieJar()
+        for cookie in cookies.split(';'):
+            key, value = cookie.split('=', 1)
+            jar.set(key, value)
+        dt = json.loads(requests.get(url, headers=headers, cookies=jar).content)
+        return dt
+
+    def storydl(self):
+        segmentname = self.standard("%s.mp3" % self.projectname)
+        segmenturl = self.story["tracks"][0]["audio"]
+        print("-" * 50)
+        print("开始下载%s" % segmentname)
+        print("aria2c.exe -d \"%s\" -o \"%s\" -s 16 -x 16 \"%s\"" % (
+            self.projectname, segmentname, segmenturl))
+        os.system(
+            "aria2c.exe -d \"%s\" -o \"%s\" -s 16 -x 16 \"%s\"" % (
+                self.projectname, segmentname, segmenturl))
+        print("-" * 50)
+        print("下载完成。")
+
+    def getdescription(self):
+        authors = ""
+        for author in self.detail["speakers"]:
+            authors += "[img]" + author["avatar_url"].replace("_r", "") + "[/img]\n"  # 头像
+            authors += "[b][size=4]主讲人：" + author["name"] + "[/size][/b]\n"
+            authors += "主讲人简介：" + author["headline"] + "\n"
+
+        briefdes = "[b][size=4]课程简介[/size][/b]\n"
+        content = self.html2bbcode(self.detail["description"])
+        briefdes += content
+        return (authors + "\n" + briefdes)
+
+    def writedesc(self):
+        content = self.getdescription()
+        with codecs.open(("%s.txt" % self.projectname), "a+", "utf-8") as f:
+            f.write(content)
+
+
+class Abook(Base):
+    def __init__(self, abookid):
+        self.id = abookid
+
+    def parse(self):
+        self.setcookie()
+        self.detail = self.getdetail()
+        self.projectname = self.detail["title"]
+        if os.path.exists(self.projectname):
+            pass
+        else:
+            os.mkdir(self.projectname)
+        self.abookdl()
+        print(self.getdescription())
+
+    def getdetail(self):
+        url = "https://api.zhihu.com/books/audio/" + self.id + "/all"
+        headers = {
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36'
+        }
+        cookies = self.cookie
+        jar = requests.cookies.RequestsCookieJar()
+        for cookie in cookies.split(';'):
+            key, value = cookie.split('=', 1)
+            jar.set(key, value)
+        dt = json.loads(requests.get(url, headers=headers, cookies=jar).content)
+        return dt
+
+    def abookdl(self):
+        for chapter in self.detail["chapters"]:
+            segmentname = self.standard("%s.mp3" % chapter["title"])
+            segmenturl = chapter["file"]["default"]["path"]
+            print("-" * 50)
+            print("开始下载%s" % segmentname)
+            print("aria2c.exe -d \"%s\" -o \"%s\" -s 16 -x 16 \"%s\"" % (
+                self.projectname, segmentname, segmenturl))
+            os.system(
+                "aria2c.exe -d \"%s\" -o \"%s\" -s 16 -x 16 \"%s\"" % (
+                    self.projectname, segmentname, segmenturl))
+            print("-" * 50)
+            print("下载完成。")
+
+    def getdescription(self):
+        authors = ""
+        for author in self.detail["data"]["creators"]["authors"]:
+            authors += "[img]" + author["avatar_url"].replace("_r", "") + "[/img]\n"  # 头像
+            authors += "[b][size=4]主讲人：" + author["name"] + "[/size][/b]\n"
+
+        briefdes = "[b][size=4]课程简介[/size][/b]\n"
+        content = self.html2bbcode(self.detail["description"])
+        briefdes += content
+
+        summary = "[b][size=4]推荐词[/size][/b]\n"
+        content = self.html2bbcode(self.detail["summary"])
+        summary += content
+
+        return (authors + "\n" + briefdes + "\n" + summary)
+
+    def writedesc(self):
+        content = self.getdescription()
+        with codecs.open(("%s.txt" % self.projectname), "a+", "utf-8") as f:
+            f.write(content)
+
 
 class billboard(Base):
     def __init__(self, typ, cat, page, rows):
@@ -384,7 +524,7 @@ class billboard(Base):
                 task = Sijiake(self.li["data"][i]["business_id"])
                 task.parse()
                 task.writedesc()
-            if self.li["data"][i]["media_type"] == "audio" and self.typ == "Live":
+            elif self.li["data"][i]["media_type"] == "audio" and self.typ == "Live":
                 task = ALive(self.li["data"][i]["business_id"])
                 task.parse()
                 task.writedesc()
@@ -392,12 +532,21 @@ class billboard(Base):
                 task = Live(self.li["data"][i]["business_id"])
                 task.parse()
                 task.writedesc()
+            elif self.typ == "remix_instabook":
+                task = Jiangshu(self.li["data"][i]["business_id"])
+                task.parse()
+                task.writedesc()
+            elif self.typ == "ebook_audio":
+                task = Abook(self.li["data"][i]["business_id"])
+                task.parse()
+                task.writedesc()
             else:
                 print("第%02d个任务处理失败。" % i)
             i += 1
 
+
 def entrance():
-    zhihu = input("请输入需要下载的知乎资源类型:\n1.知乎私家课\n2.知乎Live\n3.知乎讲书\n")
+    zhihu = input("请输入需要下载的知乎资源类型:\n1.知乎私家课\n2.知乎Live\n3.知乎讲书\n4.电子书\n5.有声书\n")
     if zhihu == "1":
         coursetype = "album"
         dlmethod = input("请选择下载方式\n1.通过列表下载\n2.通过课程id下载\n")
@@ -431,7 +580,7 @@ def entrance():
                 albums = billboard(coursetype, "interest", 1, 50)
                 albums.show()
         if dlmethod == "2":
-            idtype = input("请输入需要下载的Live id类型：\n1.视频Live\n2.音频Liven")
+            idtype = input("请输入需要下载的Live id类型：\n1.视频Live\n2.音频Live\n")
             if idtype == "1":
                 liveid = input("请输入要进行下载的知乎视频Live id:")
                 task = Live(liveid)
@@ -441,11 +590,38 @@ def entrance():
                 task = ALive(liveid)
                 task.parse()
     elif zhihu == "3":
-         # TODO 知乎讲书下载
-        pass
-    if zhihu == "4":
+        coursetype = "remix_instabook"
+        dlmethod = input("请选择下载方式\n1.通过列表下载\n2.通过课程id下载\n")
+        if dlmethod == "1":
+            cate = input("请输入列表排序方式：\n1.按最新发布排序\n2.按最多人感兴趣排序\n")
+            if cate == "1":
+                albums = billboard(coursetype, "newest", 1, 50)
+                albums.show()
+            elif cate == "2":
+                albums = billboard(coursetype, "interest", 1, 50)
+                albums.show()
+        if dlmethod == "2":
+            storyid = input("请输入要进行下载的知乎讲书id:")
+            task = Jiangshu(storyid)
+            task.parse()
+    elif zhihu == "4":
         # TODO 知乎电子书有drm，暂未找到解密方法
         pass
+    elif zhihu == "5":
+        coursetype = "ebook_audio"
+        dlmethod = input("请选择下载方式\n1.通过列表下载\n2.通过课程id下载\n")
+        if dlmethod == "1":
+            cate = input("请输入列表排序方式：\n1.按最新发布排序\n2.按最多人感兴趣排序\n")
+            if cate == "1":
+                albums = billboard(coursetype, "newest", 1, 50)
+                albums.show()
+            elif cate == "2":
+                albums = billboard(coursetype, "interest", 1, 50)
+                albums.show()
+        if dlmethod == "2":
+            bookid = input("请输入要进行下载的知乎有声书id:")
+            task = Abook(bookid)
+            task.parse()
 
 if __name__ == "__main__":
     entrance()
