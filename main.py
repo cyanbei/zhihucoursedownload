@@ -90,9 +90,9 @@ class Sijiake(Base):
             if resl_ind in self.playlist["album_video_chapters"][0]["videos"][0]["playlist_info"]:
                resl_li.append(resl_ind)
         print("可下载的清晰度有：" + str(resl_li))
-        des_resl = input("请输入要下载的清晰度，默认hd")
-        if des_resl != "":
-            resl = des_resl
+        # des_resl = input("请输入要下载的清晰度，默认hd")
+        # if des_resl != "":
+            # resl = des_resl
         for chapter in self.playlist["album_video_chapters"]:
             chapname = self.standard("第%d章 %s" % (chapter["chapter_index"], chapter["title"]))
             for segment in chapter["videos"]:
@@ -466,9 +466,10 @@ class billboard(Base):
 
     def show(self):
         self.li = self.list()
+        self.row = len(self.li["data"]) # 修复最后一页行数不够的问题，显示条数通过读取json内data条数实现
         print("-" * 25 + "读取列表中" + "-" * 25)
         index = 0
-        while index < self.rows:
+        while index < self.row:
             print("%02d\t%s\t%s\t%s\t%s" % (index, self.li["data"][index]["title"],self.li["data"][index]["media_type"],
                                            self.li["data"][index]["chapter_text"], self.li["data"][index]["duration_text"]))
             index += 1

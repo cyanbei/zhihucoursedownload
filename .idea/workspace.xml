@@ -13,17 +13,10 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/main.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="214">
-              <caret line="608" column="12" lean-forward="true" selection-start-line="608" selection-start-column="12" selection-end-line="608" selection-end-column="12" />
+            <state relative-caret-position="333">
+              <caret line="468" column="77" selection-start-line="468" selection-start-column="77" selection-end-line="468" selection-end-column="77" />
               <folding>
                 <element signature="e#0#15#0" expanded="true" />
-                <element signature="e#119#2314#0" />
-                <element signature="e#2342#6165#0" />
-                <element signature="e#6197#7315#0" />
-                <element signature="e#7341#11141#0" />
-                <element signature="e#11166#13660#0" />
-                <element signature="e#13767#16606#0" />
-                <element signature="e#16624#18859#0" />
               </folding>
             </state>
           </provider>
@@ -62,7 +55,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -74,6 +66,7 @@
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="RunDashboard">
@@ -132,7 +125,7 @@
   <component name="ToolWindowManager">
     <frame x="-7" y="-7" width="1550" height="838" extended-state="6" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.30227882" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.30630028" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -159,17 +152,10 @@
     <entry file="file://$PROJECT_DIR$/downloader/m3u8.py" />
     <entry file="file://$PROJECT_DIR$/main.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="214">
-          <caret line="608" column="12" lean-forward="true" selection-start-line="608" selection-start-column="12" selection-end-line="608" selection-end-column="12" />
+        <state relative-caret-position="333">
+          <caret line="468" column="77" selection-start-line="468" selection-start-column="77" selection-end-line="468" selection-end-column="77" />
           <folding>
             <element signature="e#0#15#0" expanded="true" />
-            <element signature="e#119#2314#0" />
-            <element signature="e#2342#6165#0" />
-            <element signature="e#6197#7315#0" />
-            <element signature="e#7341#11141#0" />
-            <element signature="e#11166#13660#0" />
-            <element signature="e#13767#16606#0" />
-            <element signature="e#16624#18859#0" />
           </folding>
         </state>
       </provider>
